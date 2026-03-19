@@ -1,6 +1,6 @@
-# HeadFull Soccer
+# HeadFull Football
 
-A fast-paced, arcade-style 3D soccer game where players control characters with comically oversized heads. Score goals, trigger power-ups, and dominate the field in chaotic, over-the-top matches.
+A fast-paced, arcade-style 3D Football game where players control characters with comically oversized heads. Score goals, trigger power-ups, and dominate the field in chaotic, over-the-top matches.
 
 >  **Status:** Currently under active development.
 
@@ -8,9 +8,9 @@ A fast-paced, arcade-style 3D soccer game where players control characters with 
 
 ##  Gameplay
 
-HeadFull Soccer takes the beautiful game and cranks it up to eleven. Players compete in soccer matches where the physics of those enormous heads play a central role — whether it's heading the ball with unstoppable force or getting knocked off balance at the worst moment.
+HeadFull Football takes the beautiful game and cranks it up to eleven. Players compete in Football matches where the physics of those enormous heads play a central role — whether it's heading the ball with unstoppable force or getting knocked off balance at the worst moment.
 
-- **3D arcade soccer** with exaggerated physics and character proportions
+- **3D arcade Football** with exaggerated physics and character proportions
 - **Power-ups** scattered across the field that shake up the match dynamics
 - Fast, fun, and chaotic — built for replayability
 
@@ -37,7 +37,7 @@ HeadFull Soccer takes the beautiful game and cranks it up to eleven. Players com
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/headfull-soccer.git
+   git clone https://github.com/your-username/headfull-Football.git
    ```
 
 2. **Open in Unity Hub:**
@@ -62,7 +62,7 @@ HeadFull Soccer takes the beautiful game and cranks it up to eleven. Players com
 
 ##  Roadmap
 
-- [ ] Core soccer gameplay loop
+- [ ] Core Football gameplay loop
 - [ ] Power-up system
 - [ ] Multiple characters and head styles
 - [ ] AI opponents
