@@ -69,4 +69,21 @@ public class BallController : MonoBehaviour
         rb.angularVelocity = Vector3.zero;
         transform.position = startPosition;
     }
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Rigidbody playerRb = collision.gameObject.GetComponent<Rigidbody>();
+            playerRb.linearVelocity = Vector3.zero;
+        }
+    }
+
+    void OnCollisionStay(Collision collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Rigidbody playerRb = collision.gameObject.GetComponent<Rigidbody>();
+            playerRb.linearVelocity = Vector3.zero;
+        }
+    }
 }
