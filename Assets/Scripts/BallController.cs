@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    public float maxSpeed = 14f;
+    public float maxSpeed = 34f;
 
     [HideInInspector] public bool isCarried = false;
     [HideInInspector] public PlayerController carrier = null;
@@ -36,7 +36,7 @@ public class BallController : MonoBehaviour
         rb.MovePosition(pos);
 
         // Limitar velocidad
-        Vector3 vel = rb.linearVelocity;
+        Vector3 vel = rb.linearVelocity*2;
         vel.y = 0;
         if (vel.magnitude > maxSpeed)
             vel = vel.normalized * maxSpeed;
