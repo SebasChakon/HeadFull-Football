@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 7bc79fc78a24faa42b869a01528d0944
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 310051
+  packageName: Football Essentials 3D
+  packageVersion: 1.0
+  assetPath: Assets/Lightning Poly/Football Essentials 3D/Scripts/Player.cs
+  uploadId: 735705

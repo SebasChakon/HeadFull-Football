@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 82a575119e5ac18458623b4dd6f78cf9
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 13400000
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 310051
+  packageName: Football Essentials 3D
+  packageVersion: 1.0
+  assetPath: Assets/Lightning Poly/Football Essentials 3D/Physics Materials/Player.physicMaterial
+  uploadId: 735705
