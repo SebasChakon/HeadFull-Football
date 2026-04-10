@@ -3,6 +3,11 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+
+    [Header("Personaje visual")]
+    public Transform headAttachPoint;
+    private GameObject headInstance;
+
     [Header("Configuración")]
     public float maxPossessionTime = 2f;
     private float possessionTimer = 0f;
@@ -22,12 +27,13 @@ public class PlayerController : MonoBehaviour
     private InputActionMap actionMap;
     private InputAction moveAction;
     private InputAction kickAction;
+    private PlayerControls controls;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
 
-        PlayerControls controls = new PlayerControls();
+        controls = new PlayerControls();
         actionMap = controls.asset.FindActionMap(actionMapName);
         actionMap.Enable();
 
@@ -100,14 +106,42 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
-    {
-        rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.fixedDeltaTime);
-    }
+void FixedUpdate()
+{
+    rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.fixedDeltaTime);
 
+    // Rotación de la cabeza
+    if (headInstance != null)
+    {
+        Vector3 targetDir;
+
+        if (ball.carrier == this)
+        {
+            // Si tiene el balón, mirar al balón
+            targetDir = ball.transform.position - headAttachPoint.position;
+        }
+        else
+        {
+            // Si no tiene el balón, mirar hacia donde se mueve
+            targetDir = moveDirection;
+        }
+
+        targetDir.y = 0;
+        if (targetDir != Vector3.zero)
+        {
+            Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+            headInstance.transform.rotation = Quaternion.Lerp(
+                headInstance.transform.rotation,
+                targetRotation,
+                10f * Time.fixedDeltaTime
+            );
+        }
+    }
+}
     void OnDestroy()
     {
         actionMap?.Disable();
+        controls?.asset.FindActionMap(actionMapName).Disable();
     }
     void OnCollisionEnter(Collision collision)
     {
@@ -126,5 +160,27 @@ public class PlayerController : MonoBehaviour
             var rb = GetComponent<Rigidbody>();
             rb.linearVelocity = Vector3.zero;
         }
+    }
+    public void LoadCharacter(string characterName)
+    {
+        if (headInstance != null) Destroy(headInstance);
+
+        GameObject prefab = Resources.Load<GameObject>("Characters/" + characterName);
+        if (prefab == null)
+        {
+            Debug.LogError("No se encontró el personaje: " + characterName);
+            return;
+        }
+
+        headInstance = Instantiate(prefab, headAttachPoint.position, headAttachPoint.rotation);
+        headInstance.transform.SetParent(headAttachPoint);
+        headInstance.transform.localPosition = Vector3.zero;
+        headInstance.transform.localScale = Vector3.one * 160f;
+
+        // Rotar según el jugador
+        if (actionMapName == "Player1")
+            headInstance.transform.localRotation = Quaternion.Euler(0, 90, 0);
+        else
+            headInstance.transform.localRotation = Quaternion.Euler(0, 270, 0);
     }
 }
