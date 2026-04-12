@@ -5,12 +5,25 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
+    [Header("Nombres de personajes")]
+    public TMP_Text player1CharName;
+    public TMP_Text player2CharName;
+
     [Header("Marcador - arrastra aquí los textos del marcador")]
     public TMP_Text scorePlayer1;
     public TMP_Text scorePlayer2;
 
     private int goalsPlayer1 = 0;
     private int goalsPlayer2 = 0;
+
+    void Start()
+    {
+        string name1 = PlayerPrefs.GetString("Player1Character", "Jugador 1");
+        string name2 = PlayerPrefs.GetString("Player2Character", "Jugador 2");
+
+        if (player1CharName) player1CharName.text = name1;
+        if (player2CharName) player2CharName.text = name2;
+    }
 
     void Awake()
     {

@@ -110,33 +110,30 @@ void FixedUpdate()
 {
     rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.fixedDeltaTime);
 
-    // Rotación de la cabeza
     if (headInstance != null)
     {
-        Vector3 targetDir;
+    Vector3 targetDir;
 
-        if (ball.carrier == this)
-        {
-            // Si tiene el balón, mirar al balón
-            targetDir = ball.transform.position - headAttachPoint.position;
-        }
-        else
-        {
-            // Si no tiene el balón, mirar hacia donde se mueve
-            targetDir = moveDirection;
-        }
+    if (ball.carrier == this)
+        targetDir = ball.transform.position - headAttachPoint.position;
+    else
+        targetDir = moveDirection;
 
-        targetDir.y = 0;
-        if (targetDir != Vector3.zero)
-        {
-            Quaternion targetRotation = Quaternion.LookRotation(targetDir);
-            headInstance.transform.rotation = Quaternion.Lerp(
-                headInstance.transform.rotation,
-                targetRotation,
-                10f * Time.fixedDeltaTime
-            );
-        }
+    targetDir.y = 0;
+    if (targetDir != Vector3.zero)
+    {
+        Quaternion lookRotation = Quaternion.LookRotation(targetDir);
+        Quaternion correction = actionMapName == "Player1" 
+            ? Quaternion.Euler(270, 0, 90) 
+            : Quaternion.Euler(270, 180, 270);
+
+        headInstance.transform.rotation = Quaternion.Lerp(
+            headInstance.transform.rotation,
+            lookRotation * correction,
+            10f * Time.fixedDeltaTime
+        );
     }
+}
 }
     void OnDestroy()
     {
@@ -179,8 +176,8 @@ void FixedUpdate()
 
         // Rotar según el jugador
         if (actionMapName == "Player1")
-            headInstance.transform.localRotation = Quaternion.Euler(0, 90, 0);
+            headInstance.transform.localRotation = Quaternion.Euler(270, 90, 90);
         else
-            headInstance.transform.localRotation = Quaternion.Euler(0, 270, 0);
+            headInstance.transform.localRotation = Quaternion.Euler(270, 270, 90);
     }
 }

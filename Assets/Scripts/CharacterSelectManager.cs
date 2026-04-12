@@ -82,8 +82,8 @@ public class CharacterSelectManager : MonoBehaviour
             if (previewInstance1 != null) Destroy(previewInstance1);
             previewInstance1 = Instantiate(characterPrefabs[index],
                 new Vector3(100, 4.5f, 0f),
-                Quaternion.Euler(0, 0, 0));
-            previewInstance1.transform.localScale = Vector3.one * 8000f;
+                Quaternion.Euler(270, 0, 90));
+            previewInstance1.transform.localScale = Vector3.one * 6000f;
             player1Name.text = characterNames[index];
         }
         else
@@ -91,8 +91,8 @@ public class CharacterSelectManager : MonoBehaviour
             if (previewInstance2 != null) Destroy(previewInstance2);
             previewInstance2 = Instantiate(characterPrefabs[index],
                 new Vector3(300, 4.5f, 0f),
-                Quaternion.Euler(0, 0, 0));
-            previewInstance2.transform.localScale = Vector3.one * 8000f;
+                Quaternion.Euler(270, 0, 90));
+            previewInstance2.transform.localScale = Vector3.one * 6000f;
             player2Name.text = characterNames[index];
         }
     }
