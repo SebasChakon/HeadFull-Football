@@ -83,7 +83,7 @@ public class CharacterSelectManager : MonoBehaviour
             previewInstance1 = Instantiate(characterPrefabs[index],
                 new Vector3(100, 4.5f, 0f),
                 Quaternion.Euler(270, 0, 90));
-            previewInstance1.transform.localScale = Vector3.one * 6000f;
+            previewInstance1.transform.localScale = Vector3.one * 9000f;
             player1Name.text = characterNames[index];
         }
         else
@@ -92,7 +92,7 @@ public class CharacterSelectManager : MonoBehaviour
             previewInstance2 = Instantiate(characterPrefabs[index],
                 new Vector3(300, 4.5f, 0f),
                 Quaternion.Euler(270, 0, 90));
-            previewInstance2.transform.localScale = Vector3.one * 6000f;
+            previewInstance2.transform.localScale = Vector3.one * 9000f;
             player2Name.text = characterNames[index];
         }
     }
