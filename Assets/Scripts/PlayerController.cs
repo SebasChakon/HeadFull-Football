@@ -3,10 +3,11 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-
     [Header("Personaje visual")]
     public Transform headAttachPoint;
+    public Transform shoeAttachPoint;
     private GameObject headInstance;
+    private GameObject shoeInstance;
 
     [Header("Configuración")]
     public float maxPossessionTime = 2f;
@@ -14,7 +15,7 @@ public class PlayerController : MonoBehaviour
     public float moveSpeed = 6f;
     public float kickForce = 12f;
     public float pickupRadius = 1.0f;
-    public float pickupCooldown = 0.4f; // segundos sin poder recoger tras patear
+    public float pickupCooldown = 0.4f;
 
     [Header("Qué mapa de controles usa este jugador")]
     public string actionMapName = "Player1";
@@ -45,7 +46,6 @@ public class PlayerController : MonoBehaviour
     {
         ball = FindObjectOfType<BallController>();
 
-        // Ignorar colisiones entre el jugador y los triggers de portería
         GoalDetector[] goals = FindObjectsOfType<GoalDetector>();
         foreach (GoalDetector goal in goals)
         {
@@ -58,24 +58,18 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // Bajar el timer de cooldown
         if (pickupTimer > 0f)
             pickupTimer -= Time.deltaTime;
 
-        // Movimiento
         Vector2 input = moveAction.ReadValue<Vector2>();
         moveDirection = new Vector3(input.x, 0, input.y).normalized;
 
         if (moveDirection != Vector3.zero)
             transform.forward = moveDirection;
 
-
-        // Contar tiempo de posesión
         if (ball.carrier == this)
         {
             possessionTimer += Time.deltaTime;
-
-            // Auto-patear si lleva 2 segundos con el balón
             if (possessionTimer >= maxPossessionTime)
             {
                 ball.Kick(transform.forward, kickForce);
@@ -89,15 +83,13 @@ public class PlayerController : MonoBehaviour
             possessionTimer = 0f;
         }
 
-        // Patear — tiene prioridad, va antes del pickup
         if (kickAction.WasPressedThisFrame() && ball.carrier == this)
         {
             ball.Kick(transform.forward, kickForce);
-            pickupTimer = pickupCooldown; // activar cooldown
-            return; // salir del Update para no procesar pickup en este frame
+            pickupTimer = pickupCooldown;
+            return;
         }
 
-        // Recoger balón solo si el cooldown terminó y nadie lo tiene
         if (!ball.isCarried && pickupTimer <= 0f)
         {
             float dist = Vector3.Distance(transform.position, ball.transform.position);
@@ -106,40 +98,43 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-void FixedUpdate()
-{
-    rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.fixedDeltaTime);
-
-    if (headInstance != null)
+    void FixedUpdate()
     {
-    Vector3 targetDir;
+        rb.MovePosition(rb.position + moveDirection * moveSpeed * Time.fixedDeltaTime);
 
-    if (ball.carrier == this)
-        targetDir = ball.transform.position - headAttachPoint.position;
-    else
-        targetDir = moveDirection;
+        if (headInstance != null)
+        {
+            Vector3 targetDir;
 
-    targetDir.y = 0;
-    if (targetDir != Vector3.zero)
-    {
-        Quaternion lookRotation = Quaternion.LookRotation(targetDir);
-        Quaternion correction = actionMapName == "Player1" 
-            ? Quaternion.Euler(270, 0, 90) 
-            : Quaternion.Euler(270, 180, 270);
+            if (ball.carrier == this)
+                targetDir = ball.transform.position - headAttachPoint.position;
+            else
+                targetDir = moveDirection;
 
-        headInstance.transform.rotation = Quaternion.Lerp(
-            headInstance.transform.rotation,
-            lookRotation * correction,
-            10f * Time.fixedDeltaTime
-        );
+            targetDir.y = 0;
+            if (targetDir != Vector3.zero)
+            {
+                Quaternion lookRotation = Quaternion.LookRotation(targetDir);
+                Quaternion correction = actionMapName == "Player1"
+                    ? Quaternion.Euler(270, 0, 90)
+                    : Quaternion.Euler(270, 180, 270);
+
+                headInstance.transform.rotation = Quaternion.Lerp(
+                    headInstance.transform.rotation,
+                    lookRotation * correction,
+                    10f * Time.fixedDeltaTime
+                );
+            }
+        }
+
     }
-}
-}
+
     void OnDestroy()
     {
         actionMap?.Disable();
         controls?.asset.FindActionMap(actionMapName).Disable();
     }
+
     void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Goal"))
@@ -158,8 +153,10 @@ void FixedUpdate()
             rb.linearVelocity = Vector3.zero;
         }
     }
+
     public void LoadCharacter(string characterName)
     {
+        // ── Cabeza ──────────────────────────────────────────────────────────
         if (headInstance != null) Destroy(headInstance);
 
         GameObject prefab = Resources.Load<GameObject>("Characters/" + characterName);
@@ -174,10 +171,33 @@ void FixedUpdate()
         headInstance.transform.localPosition = Vector3.zero;
         headInstance.transform.localScale = Vector3.one * 160f;
 
-        // Rotar según el jugador
         if (actionMapName == "Player1")
             headInstance.transform.localRotation = Quaternion.Euler(270, 90, 90);
         else
             headInstance.transform.localRotation = Quaternion.Euler(270, 270, 90);
+
+        // ── Zapato ──────────────────────────────────────────────────────────
+        if (shoeAttachPoint == null) return;
+        if (shoeInstance != null) Destroy(shoeInstance);
+
+        GameObject shoePrefab = Resources.Load<GameObject>("Shoe");
+        if (shoePrefab == null)
+        {
+            Debug.LogWarning("No se encontró el prefab 'Shoe' en Resources/");
+            return;
+        }
+
+        // Contenedor corrector que absorbe la rotación del modelo
+        GameObject shoeRoot = new GameObject("ShoeRoot");
+        shoeRoot.transform.SetParent(shoeAttachPoint);
+        shoeRoot.transform.localPosition = Vector3.zero;
+        shoeRoot.transform.localRotation = Quaternion.Euler(0, -90, 0);
+
+        // Zapato dentro del contenedor
+        shoeInstance = Instantiate(shoePrefab, shoeRoot.transform.position, shoeRoot.transform.rotation);
+        shoeInstance.transform.SetParent(shoeRoot.transform);
+        shoeInstance.transform.localPosition = Vector3.zero;
+        shoeInstance.transform.localScale    = Vector3.one * 4f;
+        shoeInstance.transform.localRotation = Quaternion.Euler(0, 0, 0);
     }
 }

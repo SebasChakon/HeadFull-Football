@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using TMPro;
 
@@ -6,52 +7,170 @@ public class RoundManager : MonoBehaviour
     [Header("Duración de la ronda en segundos")]
     public float roundDuration = 60f;
 
-    [Header("Texto del timer en escena")]
+    [Header("UI - Timer de la ronda")]
     public TMP_Text timerText;
 
+    [Header("UI - Countdown 3-2-1 (texto grande del centro)")]
+    public TMP_Text countdownText;
+
+    // ─── Estado interno ───────────────────────────────────────────────────────
     private float timeLeft;
-    private bool roundStarted = false;
-    private bool roundEnded = false;
+    private bool roundActive  = false;
+    private bool roundEnded   = false;
 
-    // Posiciones iniciales
-    private Vector3 ballStartPos;
-    private Vector3 player1StartPos;
-    private Vector3 player2StartPos;
+    // ─── Referencias ─────────────────────────────────────────────────────────
+    private Vector3   ballStartPos;
+    private Vector3[] playerStartPositions;
 
-    private BallController ball;
+    private BallController     ball;
     private PlayerController[] players;
+
+    // ─────────────────────────────────────────────────────────────────────────
+
+    void OnEnable()
+    {
+        GameManager.OnGoalScored += HandleGoalScored;
+    }
+
+    void OnDisable()
+    {
+        GameManager.OnGoalScored -= HandleGoalScored;
+    }
 
     void Start()
     {
-        ball = FindObjectOfType<BallController>();
+        ball    = FindObjectOfType<BallController>();
         players = FindObjectsOfType<PlayerController>();
 
+        // Ordenar para que Player1 sea siempre [0]
+        System.Array.Sort(players, (a, b) =>
+            string.Compare(a.actionMapName, b.actionMapName));
+
         // Guardar posiciones iniciales
-        ballStartPos = ball.transform.position;
-        player1StartPos = players[0].transform.position;
-        player2StartPos = players[1].transform.position;
+        ballStartPos          = ball.transform.position;
+        playerStartPositions  = new Vector3[players.Length];
+        for (int i = 0; i < players.Length; i++)
+            playerStartPositions[i] = players[i].transform.position;
 
         timeLeft = roundDuration;
         UpdateTimerText();
+
+        if (countdownText) countdownText.gameObject.SetActive(false);
+
+        StartCoroutine(PreRoundCountdown());
     }
 
     void Update()
     {
-        // Arrancar cuando cualquier jugador presione una tecla
-        if (!roundStarted && !roundEnded)
-        {
-            if (Input.anyKeyDown)
-                roundStarted = true;
-        }
+        if (!roundActive || roundEnded) return;
 
-        if (!roundStarted || roundEnded) return;
-
-        // Contar tiempo
         timeLeft -= Time.deltaTime;
         UpdateTimerText();
 
         if (timeLeft <= 0f)
-            EndRound();
+            StartCoroutine(EndRound());
+    }
+
+    // ─── Countdown inicial ────────────────────────────────────────────────────
+
+    IEnumerator PreRoundCountdown()
+    {
+        SetPlayersEnabled(false);
+        ShowCountdown(true);
+
+        for (int i = 3; i >= 1; i--)
+        {
+            SetCountdownText(i.ToString());
+            yield return new WaitForSeconds(1f);
+        }
+
+        SetCountdownText("¡GO!");
+        yield return new WaitForSeconds(0.6f);
+
+        ShowCountdown(false);
+        SetPlayersEnabled(true);
+        roundActive = true;
+    }
+
+    // ─── Gol anotado ─────────────────────────────────────────────────────────
+
+    void HandleGoalScored(int player)
+    {
+        if (GameManager.Instance.IsGameOver) return;
+        if (roundEnded) return;
+        if (!roundActive) return; // ← esto evita el doble gol
+
+        StartCoroutine(PostGoalSequence());
+    }
+
+    IEnumerator PostGoalSequence()
+    {
+        roundActive = false;
+        SetPlayersEnabled(false);
+        ball.ResetBall(); // ← resetear pelota INMEDIATAMENTE
+
+        // Esperar que el efecto de cámara haga lo suyo
+        yield return new WaitForSeconds(2.2f);
+
+        // Resetear posiciones de jugadores
+        for (int i = 0; i < players.Length; i++)
+        {
+            var rb = players[i].GetComponent<Rigidbody>();
+            rb.linearVelocity  = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            players[i].transform.position = playerStartPositions[i];
+        }
+
+        ShowCountdown(true);
+        for (int i = 3; i >= 1; i--)
+        {
+            SetCountdownText(i.ToString());
+            yield return new WaitForSeconds(1f);
+        }
+
+        SetCountdownText("¡GO!");
+        yield return new WaitForSeconds(0.6f);
+
+        ShowCountdown(false);
+        SetPlayersEnabled(true);
+        roundActive = true;
+    }
+
+    // ─── Fin de ronda por tiempo ──────────────────────────────────────────────
+
+    IEnumerator EndRound()
+    {
+        roundEnded  = true;
+        roundActive = false;
+        SetPlayersEnabled(false);
+
+        // Mostrar "¡Fin!" brevemente antes del game over
+        ShowCountdown(true);
+        SetCountdownText("¡Fin!");
+        yield return new WaitForSeconds(1.5f);
+        ShowCountdown(false);
+
+        GameManager.Instance.ShowGameOver();
+    }
+
+    // ─── Helpers ──────────────────────────────────────────────────────────────
+
+    void ResetPositions()
+    {
+        ball.ResetBall();
+        for (int i = 0; i < players.Length; i++)
+        {
+            var rb = players[i].GetComponent<Rigidbody>();
+            rb.linearVelocity  = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+            players[i].transform.position = playerStartPositions[i];
+        }
+    }
+
+    void SetPlayersEnabled(bool enabled)
+    {
+        foreach (var p in players)
+            p.enabled = enabled;
     }
 
     void UpdateTimerText()
@@ -61,32 +180,13 @@ public class RoundManager : MonoBehaviour
         timerText.text = seconds.ToString();
     }
 
-    void EndRound()
+    void ShowCountdown(bool show)
     {
-        roundEnded = true;
-        roundStarted = false;
-
-        ball.ResetBall();
-
-        var rb0 = players[0].GetComponent<Rigidbody>();
-        rb0.linearVelocity = Vector3.zero;
-        players[0].transform.position = player1StartPos;
-
-        var rb1 = players[1].GetComponent<Rigidbody>();
-        rb1.linearVelocity = Vector3.zero;
-        players[1].transform.position = player2StartPos;
-
-        // Resetear puntos
-        GameManager.Instance.ResetScore();
-
-        Invoke(nameof(RestartRound), 1f);
+        if (countdownText) countdownText.gameObject.SetActive(show);
     }
 
-    void RestartRound()
+    void SetCountdownText(string text)
     {
-        timeLeft = roundDuration;
-        roundEnded = false;
-        UpdateTimerText();
-        // La ronda vuelve a esperar que alguien presione una tecla
+        if (countdownText) countdownText.text = text;
     }
 }
