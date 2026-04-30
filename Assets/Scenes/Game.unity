@@ -756,7 +756,7 @@ MonoBehaviour:
   player1: {fileID: 810081177}
   player2: {fileID: 2069865574}
   followSmoothTime: 0.15
-  positionOffset: {x: 0, y: 6, z: -8}
+  positionOffset: {x: 0, y: 6, z: -11}
   rotationSmoothSpeed: 5
   baseFOV: 55
   maxFOV: 72
@@ -2504,6 +2504,7 @@ GameObject:
   - component: {fileID: 1275253555}
   - component: {fileID: 1275253554}
   - component: {fileID: 1275253553}
+  - component: {fileID: 1275253556}
   m_Layer: 5
   m_Name: BackToMenuButton
   m_TagString: Untagged
@@ -2587,6 +2588,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 1275253556}
+        m_TargetAssemblyTypeName: ButtonSound, Assembly-CSharp
+        m_MethodName: Play
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &1275253554
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2625,6 +2638,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1275253551}
   m_CullTransparentMesh: 1
+--- !u!114 &1275253556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1275253551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ccecb0d20a7e7be4cb3c251cfc6d769d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonSound
+  clip: {fileID: 8300000, guid: 6fe5d7860120afa4fabc610fa6fc8ebc, type: 3}
 --- !u!1 &1328481829
 GameObject:
   m_ObjectHideFlags: 0
@@ -3613,7 +3639,6 @@ GameObject:
   - component: {fileID: 1606947121}
   - component: {fileID: 1606947123}
   - component: {fileID: 1606947122}
-  - component: {fileID: 1606947124}
   m_Layer: 5
   m_Name: CountdownText
   m_TagString: Untagged
@@ -3693,7 +3718,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -3740,21 +3765,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1606947120}
   m_CullTransparentMesh: 1
---- !u!114 &1606947124
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1606947120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e19747de3f5aca642ab2be37e372fb86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Outline
-  m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
-  m_EffectDistance: {x: 2, y: -2}
-  m_UseGraphicAlpha: 1
 --- !u!1 &1645033159
 GameObject:
   m_ObjectHideFlags: 0
