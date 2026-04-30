@@ -20,6 +20,9 @@ public class PlayerController : MonoBehaviour
     private GameObject headInstance;
     private GameObject shoeInstance;
 
+    private Quaternion headCorrection = Quaternion.identity;
+    private bool isMirrorHead = false;
+
     [Header("Configuración")]
     public float maxPossessionTime = 2f;
     private float possessionTimer = 0f;
@@ -44,11 +47,9 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
-
         controls = new PlayerControls();
         actionMap = controls.asset.FindActionMap(actionMapName);
         actionMap.Enable();
-
         moveAction = actionMap.FindAction("Move");
         kickAction = actionMap.FindAction("Kick");
     }
@@ -83,8 +84,7 @@ public class PlayerController : MonoBehaviour
             possessionTimer += Time.deltaTime;
             if (possessionTimer >= maxPossessionTime)
             {
-                TriggerKickAnimation();
-                ball.Kick(transform.forward, kickForce);
+                ball.Drop();
                 pickupTimer = pickupCooldown;
                 possessionTimer = 0f;
                 return;
@@ -109,6 +109,7 @@ public class PlayerController : MonoBehaviour
             if (dist <= pickupRadius)
                 ball.Pickup(this);
         }
+
         AnimateShoe();
     }
 
@@ -129,7 +130,6 @@ public class PlayerController : MonoBehaviour
 
             if (targetDir != Vector3.zero)
             {
-                // Rotar el headAttachPoint hacia la dirección
                 Quaternion targetRotation = Quaternion.LookRotation(targetDir);
                 headAttachPoint.rotation = Quaternion.Lerp(
                     headAttachPoint.rotation,
@@ -137,12 +137,12 @@ public class PlayerController : MonoBehaviour
                     10f * Time.fixedDeltaTime
                 );
 
-                // El zapato sigue exactamente la misma rotación
                 if (shoeAttachPoint != null)
                     shoeAttachPoint.rotation = headAttachPoint.rotation;
             }
-        }
 
+        headInstance.transform.localRotation = headCorrection;
+        }
     }
 
     void OnDestroy()
@@ -172,11 +172,9 @@ public class PlayerController : MonoBehaviour
 
     public void LoadCharacter(string characterName)
     {
-        // Limpiar instancias anteriores
         if (headInstance != null) Destroy(headInstance);
         if (shoeInstance != null) Destroy(shoeInstance);
 
-        // Cargar cabeza
         GameObject prefab = Resources.Load<GameObject>("Characters/" + characterName);
         if (prefab == null)
         {
@@ -186,11 +184,37 @@ public class PlayerController : MonoBehaviour
 
         headInstance = Instantiate(prefab, headAttachPoint.position, Quaternion.identity);
         headInstance.transform.SetParent(headAttachPoint);
-        headInstance.transform.localPosition = Vector3.zero;
         headInstance.transform.localScale = headScale;
-        headInstance.transform.localRotation = Quaternion.Euler(270, 0, 90);
 
-        // Cargar zapato
+        if (actionMapName == "Player1")
+        {
+            isMirrorHead = false;
+            headInstance.transform.localPosition = Vector3.zero;
+            headInstance.transform.localRotation = Quaternion.Euler(270, 0, 90);
+            headCorrection = Quaternion.Euler(270, 0, 90);
+        }
+        else
+        {
+            string name1 = PlayerPrefs.GetString("Player1Character", "");
+            string name2 = PlayerPrefs.GetString("Player2Character", "");
+            bool sameName = name1 == name2;
+            isMirrorHead = sameName;
+
+            if (sameName)
+            {
+                headInstance.transform.localPosition = new Vector3(0, 1.5f, 0);
+                headInstance.transform.localRotation = Quaternion.Euler(0, 180, 180);
+                headCorrection = Quaternion.Euler(90, 180, 90);
+            }
+            else
+            {
+                headInstance.transform.localPosition = Vector3.zero;
+                headInstance.transform.localRotation = Quaternion.Euler(270, 180, 270);
+                headCorrection = Quaternion.Euler(270, 180, 270);
+            }
+        }
+        headInstance.transform.localRotation = headCorrection;
+
         GameObject shoePrefab = Resources.Load<GameObject>("Shoe");
         if (shoePrefab == null)
         {
@@ -220,11 +244,9 @@ public class PlayerController : MonoBehaviour
             kickAngle = Mathf.MoveTowards(kickAngle, 0f, kickRotationSpeed * 60f * Time.deltaTime);
         }
 
-        // Rotar el zapato en X para simular la patada
         Quaternion baseRot = Quaternion.Euler(0, 0, 0);
         shoeInstance.transform.localRotation = baseRot * Quaternion.Euler(-kickAngle, 0, 0);
 
-        // Mover ligeramente hacia adelante
         float forward = (kickAngle / 90f) * kickMoveDistance;
         shoeInstance.transform.localPosition = shoeDefaultLocalPos + new Vector3(0, 0, forward);
     }

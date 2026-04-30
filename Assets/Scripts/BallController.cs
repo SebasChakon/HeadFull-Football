@@ -3,6 +3,7 @@ using UnityEngine;
 public class BallController : MonoBehaviour
 {
     public float maxSpeed = 34f;
+    private float ghostTimer = 0f;
 
     [HideInInspector] public bool isCarried = false;
     [HideInInspector] public PlayerController carrier = null;
@@ -14,6 +15,21 @@ public class BallController : MonoBehaviour
     {
         rb = GetComponent<Rigidbody>();
         startPosition = transform.position;
+    }
+
+    void Update()
+    {
+        if (ghostTimer > 0f)
+        {
+            ghostTimer -= Time.deltaTime;
+            if (ghostTimer <= 0f)
+            {
+                // Restaurar colisiones con jugadores
+                PlayerController[] players = FindObjectsOfType<PlayerController>();
+                foreach (PlayerController player in players)
+                    Physics.IgnoreCollision(GetComponent<Collider>(), player.GetComponent<Collider>(), false);
+            }
+        }
     }
 
     void FixedUpdate()
@@ -85,5 +101,20 @@ public class BallController : MonoBehaviour
             Rigidbody playerRb = collision.gameObject.GetComponent<Rigidbody>();
             playerRb.linearVelocity = Vector3.zero;
         }
+    }
+
+    public void Drop()
+    {
+        isCarried = false;
+        carrier = null;
+        rb.isKinematic = false;
+        rb.linearVelocity = Vector3.zero;
+        rb.angularVelocity = Vector3.zero;
+        ghostTimer = 1f;
+
+        // Ignorar colisiones con jugadores temporalmente
+        PlayerController[] players = FindObjectsOfType<PlayerController>();
+        foreach (PlayerController player in players)
+            Physics.IgnoreCollision(GetComponent<Collider>(), player.GetComponent<Collider>(), true);
     }
 }
