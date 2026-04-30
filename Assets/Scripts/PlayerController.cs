@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
 
     private Quaternion headCorrection = Quaternion.identity;
     private bool isMirrorHead = false;
+    private bool headNeedsFixRotation = false;
 
     [Header("Configuración")]
     public float maxPossessionTime = 2f;
@@ -141,7 +142,8 @@ public class PlayerController : MonoBehaviour
                     shoeAttachPoint.rotation = headAttachPoint.rotation;
             }
 
-        headInstance.transform.localRotation = headCorrection;
+            headInstance.transform.localRotation = headCorrection;
+            ApplyFixRotation(headInstance);
         }
     }
 
@@ -170,6 +172,26 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+void ApplyFixRotation(GameObject obj)
+    {
+        if (!headNeedsFixRotation) return;
+        Transform root = obj.transform.Find("Root");
+        if (root == null) return;
+
+        if (actionMapName == "Player1")
+        {
+            obj.transform.localRotation = Quaternion.Euler(0, 90, 0);
+        }
+        else if (isMirrorHead)
+        {
+            obj.transform.localRotation = Quaternion.Euler(0, -90, 180);
+        }
+        else
+        {
+            obj.transform.localRotation = Quaternion.Euler(0, -90, 0);
+        }
+    }
+
     public void LoadCharacter(string characterName)
     {
         if (headInstance != null) Destroy(headInstance);
@@ -186,11 +208,15 @@ public class PlayerController : MonoBehaviour
         headInstance.transform.SetParent(headAttachPoint);
         headInstance.transform.localScale = headScale;
 
+        // Detectar si necesita corrección
+        Transform root = headInstance.transform.Find("Root");
+        float xRot = root != null ? root.localEulerAngles.x : -1f;
+        headNeedsFixRotation = root != null && (xRot < 1f || xRot > 359f);
+
         if (actionMapName == "Player1")
         {
             isMirrorHead = false;
             headInstance.transform.localPosition = Vector3.zero;
-            headInstance.transform.localRotation = Quaternion.Euler(270, 0, 90);
             headCorrection = Quaternion.Euler(270, 0, 90);
         }
         else
@@ -203,18 +229,19 @@ public class PlayerController : MonoBehaviour
             if (sameName)
             {
                 headInstance.transform.localPosition = new Vector3(0, 1.5f, 0);
-                headInstance.transform.localRotation = Quaternion.Euler(0, 180, 180);
                 headCorrection = Quaternion.Euler(90, 180, 90);
             }
             else
             {
                 headInstance.transform.localPosition = Vector3.zero;
-                headInstance.transform.localRotation = Quaternion.Euler(270, 180, 270);
                 headCorrection = Quaternion.Euler(270, 180, 270);
             }
         }
-        headInstance.transform.localRotation = headCorrection;
 
+        headInstance.transform.localRotation = headCorrection;
+        ApplyFixRotation(headInstance);
+
+        // Cargar zapato
         GameObject shoePrefab = Resources.Load<GameObject>("Shoe");
         if (shoePrefab == null)
         {

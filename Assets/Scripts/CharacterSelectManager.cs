@@ -26,9 +26,8 @@ public class CharacterSelectManager : MonoBehaviour
     private GameObject previewInstance1;
     private GameObject previewInstance2;
 
-    // Posiciones donde se instancian los personajes para preview
     private Vector3 pos1 = new Vector3(100, 0, 0);
-    private Vector3 pos2 = new Vector3(200, 0, 0);
+    private Vector3 pos2 = new Vector3(300, 0, 0);
 
     void Start()
     {
@@ -64,7 +63,6 @@ public class CharacterSelectManager : MonoBehaviour
             {
                 validPrefabs.Add(obj);
                 validNames.Add(obj.name);
-                Debug.Log("Personaje encontrado: " + obj.name);
             }
         }
 
@@ -84,7 +82,12 @@ public class CharacterSelectManager : MonoBehaviour
                 new Vector3(100, 4.5f, 0f),
                 Quaternion.Euler(270, 0, 90));
             previewInstance1.transform.localScale = Vector3.one * 9000f;
+            FixRotation(previewInstance1);
             player1Name.text = characterNames[index];
+
+            // Debug para ver rotaciones
+            foreach (Transform t in previewInstance1.GetComponentsInChildren<Transform>())
+                Debug.Log(t.name + " rotación: " + t.localEulerAngles);
         }
         else
         {
@@ -93,13 +96,34 @@ public class CharacterSelectManager : MonoBehaviour
                 new Vector3(300, 4.5f, 0f),
                 Quaternion.Euler(270, 0, 90));
             previewInstance2.transform.localScale = Vector3.one * 9000f;
+            FixRotation(previewInstance2);
             player2Name.text = characterNames[index];
+        }
+    }
+
+    void FixRotation(GameObject obj)
+    {
+        Transform root = obj.transform.Find("Root");
+        if (root == null) return;
+
+        float xRot = root.localEulerAngles.x;
+        bool needsFix = xRot < 1f || xRot > 359f;
+
+        if (needsFix)
+        {
+            // Este modelo necesita corrección extra de -90 en X
+            obj.transform.rotation = Quaternion.Euler(0, 90, 0);
+            Debug.Log("Corregido: " + obj.name);
+        }
+        else
+        {
+            obj.transform.rotation = Quaternion.Euler(270, 0, 90);
+            Debug.Log("Sin corrección: " + obj.name);
         }
     }
 
     public void Player1Left()
     {
-        Debug.Log("Player1Left llamado, index actual: " + index1);
         index1 = (index1 - 1 + characterPrefabs.Length) % characterPrefabs.Length;
         ShowCharacter(1, index1);
     }
