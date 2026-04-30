@@ -172,7 +172,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-void ApplyFixRotation(GameObject obj)
+    void ApplyFixRotation(GameObject obj)
     {
         if (!headNeedsFixRotation) return;
         Transform root = obj.transform.Find("Root");
@@ -188,7 +188,7 @@ void ApplyFixRotation(GameObject obj)
         }
         else
         {
-            obj.transform.localRotation = Quaternion.Euler(0, -90, 0);
+            obj.transform.localRotation = Quaternion.Euler(0, 90, 0);
         }
     }
 
