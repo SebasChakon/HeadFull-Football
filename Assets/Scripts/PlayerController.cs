@@ -3,6 +3,17 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
+    [Header("Animación patada")]
+    public float kickRotationSpeed = 15f;
+    public float kickMoveDistance = 0.3f;
+    private bool isKicking = false;
+    private float kickAngle = 0f;
+    private Vector3 shoeDefaultLocalPos;
+
+    [Header("Escala visual")]
+    public Vector3 headScale = new Vector3(160f, 160f, 160f);
+    public Vector3 shoeScale = new Vector3(1f, 1f, 1f);
+
     [Header("Personaje visual")]
     public Transform headAttachPoint;
     public Transform shoeAttachPoint;
@@ -72,6 +83,7 @@ public class PlayerController : MonoBehaviour
             possessionTimer += Time.deltaTime;
             if (possessionTimer >= maxPossessionTime)
             {
+                TriggerKickAnimation();
                 ball.Kick(transform.forward, kickForce);
                 pickupTimer = pickupCooldown;
                 possessionTimer = 0f;
@@ -85,6 +97,7 @@ public class PlayerController : MonoBehaviour
 
         if (kickAction.WasPressedThisFrame() && ball.carrier == this)
         {
+            TriggerKickAnimation();
             ball.Kick(transform.forward, kickForce);
             pickupTimer = pickupCooldown;
             return;
@@ -96,6 +109,7 @@ public class PlayerController : MonoBehaviour
             if (dist <= pickupRadius)
                 ball.Pickup(this);
         }
+        AnimateShoe();
     }
 
     void FixedUpdate()
@@ -112,18 +126,20 @@ public class PlayerController : MonoBehaviour
                 targetDir = moveDirection;
 
             targetDir.y = 0;
+
             if (targetDir != Vector3.zero)
             {
-                Quaternion lookRotation = Quaternion.LookRotation(targetDir);
-                Quaternion correction = actionMapName == "Player1"
-                    ? Quaternion.Euler(270, 0, 90)
-                    : Quaternion.Euler(270, 180, 270);
-
-                headInstance.transform.rotation = Quaternion.Lerp(
-                    headInstance.transform.rotation,
-                    lookRotation * correction,
+                // Rotar el headAttachPoint hacia la dirección
+                Quaternion targetRotation = Quaternion.LookRotation(targetDir);
+                headAttachPoint.rotation = Quaternion.Lerp(
+                    headAttachPoint.rotation,
+                    targetRotation,
                     10f * Time.fixedDeltaTime
                 );
+
+                // El zapato sigue exactamente la misma rotación
+                if (shoeAttachPoint != null)
+                    shoeAttachPoint.rotation = headAttachPoint.rotation;
             }
         }
 
@@ -156,9 +172,11 @@ public class PlayerController : MonoBehaviour
 
     public void LoadCharacter(string characterName)
     {
-        // ── Cabeza ──────────────────────────────────────────────────────────
+        // Limpiar instancias anteriores
         if (headInstance != null) Destroy(headInstance);
+        if (shoeInstance != null) Destroy(shoeInstance);
 
+        // Cargar cabeza
         GameObject prefab = Resources.Load<GameObject>("Characters/" + characterName);
         if (prefab == null)
         {
@@ -166,38 +184,54 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        headInstance = Instantiate(prefab, headAttachPoint.position, headAttachPoint.rotation);
+        headInstance = Instantiate(prefab, headAttachPoint.position, Quaternion.identity);
         headInstance.transform.SetParent(headAttachPoint);
         headInstance.transform.localPosition = Vector3.zero;
-        headInstance.transform.localScale = Vector3.one * 160f;
+        headInstance.transform.localScale = headScale;
+        headInstance.transform.localRotation = Quaternion.Euler(270, 0, 90);
 
-        if (actionMapName == "Player1")
-            headInstance.transform.localRotation = Quaternion.Euler(270, 90, 90);
-        else
-            headInstance.transform.localRotation = Quaternion.Euler(270, 270, 90);
-
-        // ── Zapato ──────────────────────────────────────────────────────────
-        if (shoeAttachPoint == null) return;
-        if (shoeInstance != null) Destroy(shoeInstance);
-
+        // Cargar zapato
         GameObject shoePrefab = Resources.Load<GameObject>("Shoe");
         if (shoePrefab == null)
         {
-            Debug.LogWarning("No se encontró el prefab 'Shoe' en Resources/");
+            Debug.LogWarning("No se encontró el prefab Shoe en Resources/");
             return;
         }
 
-        // Contenedor corrector que absorbe la rotación del modelo
-        GameObject shoeRoot = new GameObject("ShoeRoot");
-        shoeRoot.transform.SetParent(shoeAttachPoint);
-        shoeRoot.transform.localPosition = Vector3.zero;
-        shoeRoot.transform.localRotation = Quaternion.Euler(0, -90, 0);
-
-        // Zapato dentro del contenedor
-        shoeInstance = Instantiate(shoePrefab, shoeRoot.transform.position, shoeRoot.transform.rotation);
-        shoeInstance.transform.SetParent(shoeRoot.transform);
+        shoeInstance = Instantiate(shoePrefab, shoeAttachPoint.position, Quaternion.identity);
+        shoeInstance.transform.SetParent(shoeAttachPoint);
         shoeInstance.transform.localPosition = Vector3.zero;
-        shoeInstance.transform.localScale    = Vector3.one * 4f;
+        shoeDefaultLocalPos = Vector3.zero;
+        shoeInstance.transform.localScale = shoeScale;
         shoeInstance.transform.localRotation = Quaternion.Euler(0, 0, 0);
+    }
+
+    void AnimateShoe()
+    {
+        if (shoeAttachPoint == null || shoeInstance == null) return;
+
+        if (isKicking)
+        {
+            kickAngle = Mathf.MoveTowards(kickAngle, 90f, kickRotationSpeed * 100f * Time.deltaTime);
+            if (kickAngle >= 90f) isKicking = false;
+        }
+        else
+        {
+            kickAngle = Mathf.MoveTowards(kickAngle, 0f, kickRotationSpeed * 60f * Time.deltaTime);
+        }
+
+        // Rotar el zapato en X para simular la patada
+        Quaternion baseRot = Quaternion.Euler(0, 0, 0);
+        shoeInstance.transform.localRotation = baseRot * Quaternion.Euler(-kickAngle, 0, 0);
+
+        // Mover ligeramente hacia adelante
+        float forward = (kickAngle / 90f) * kickMoveDistance;
+        shoeInstance.transform.localPosition = shoeDefaultLocalPos + new Vector3(0, 0, forward);
+    }
+
+    void TriggerKickAnimation()
+    {
+        isKicking = true;
+        kickAngle = 0f;
     }
 }

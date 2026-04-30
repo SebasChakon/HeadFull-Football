@@ -9,6 +9,10 @@ public class GameManager : MonoBehaviour
     // Evento para que la cámara y el RoundManager reaccionen al gol
     public static event System.Action<int> OnGoalScored;
 
+    [Header("Audio")]
+    public AudioClip goalSound;
+    private AudioSource audioSource;
+
     [Header("Nombres de personajes")]
     public TMP_Text player1CharName;
     public TMP_Text player2CharName;
@@ -31,6 +35,12 @@ public class GameManager : MonoBehaviour
     {
         if (Instance == null) Instance = this;
         else Destroy(gameObject);
+
+        // Crear AudioSource desde código
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.loop = false;
+        Debug.Log("AudioSource creado: " + audioSource);
     }
 
     void Start()
@@ -47,10 +57,15 @@ public class GameManager : MonoBehaviour
 
     public void GoalScored(int player)
     {
+        Debug.Log("Gol! audioSource: " + audioSource + " | goalSound: " + goalSound);
+    
         if (IsGameOver) return;
 
         if (player == 1) goalsPlayer1++;
         else             goalsPlayer2++;
+
+        if (audioSource && goalSound)
+            audioSource.PlayOneShot(goalSound,2f);
 
         UpdateScoreboard();
         OnGoalScored?.Invoke(player);
