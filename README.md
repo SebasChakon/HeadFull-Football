@@ -37,7 +37,7 @@ HeadFull Football takes the beautiful game and cranks it up to eleven. Players c
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/headfull-Football.git
+   git clone https://github.com/SebasChakon/headfull-Football.git
    ```
 
 2. **Open in Unity Hub:**
