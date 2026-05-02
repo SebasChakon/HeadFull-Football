@@ -60,18 +60,6 @@ HeadFull Football takes the beautiful game and cranks it up to eleven. Players c
 
 ---
 
-##  Roadmap
-
-- [ ] Core Football gameplay loop
-- [ ] Power-up system
-- [ ] Multiple characters and head styles
-- [ ] AI opponents
-- [ ] Local multiplayer support
-- [ ] Sound effects and music
-- [ ] Main menu and UI polish
-
----
-
 ##  License
 
 MIT — free to use, modify, and distribute.
