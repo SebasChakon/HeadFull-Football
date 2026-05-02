@@ -49,7 +49,7 @@ HeadFull Football takes the beautiful game and cranks it up to eleven. Players c
    - Click the project to open it in the Unity Editor.
 
 4. **Run the game:**
-   - In the Unity Editor, open the "Main Menu" scene from the `Assets/Scenes` folder.
+   - In the Unity Editor, open the "MainMenu" scene from the `Assets/Scenes` folder.
    - Press the **Play** button to run the game in the editor.
 
 ### Building a Standalone Executable
